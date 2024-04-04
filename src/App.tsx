@@ -90,7 +90,7 @@ function Chicken() {
         <svg
           className="chickenbox"
           width="100%"
-          viewBox="-5 -10 160 165"
+          viewBox="-5 -15 160 170"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -110,18 +110,14 @@ function Chicken() {
             }}
             variants={{
               hovered: {
-                transition: {
-                  duration: 0.2,
-                },
-
                 scaleY: 1.1,
               },
               clicked: {
                 scaleY: 0.8,
-                transition: {
-                  duration: 0.2,
-                },
               },
+            }}
+            transition={{
+              type: "spring",
             }}
             id="chicken"
           >
@@ -134,9 +130,9 @@ function Chicken() {
               strokeLinecap="round"
               strokeLinejoin="round"
               animate={{
-                y: -4,
+                y: -3,
                 transition: {
-                  duration: 0.3,
+                  duration: 0.6,
                   repeat: Infinity,
                   repeatType: "reverse",
                 },
@@ -153,11 +149,12 @@ function Chicken() {
             />
             <motion.path
               initial={{
-                scaleY: 1,
+                rotate: 0,
+                scaleX: 1,
               }}
               variants={{
                 clicked: {
-                  scaleY: 0.5,
+                  rotate: -10,
                 },
               }}
               id="wing"
