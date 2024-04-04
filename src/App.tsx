@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { MutableRefObject, useRef, useState } from "react";
 import "./App.css";
 import { AnimatePresence, motion } from "framer-motion";
+import useSound from "use-sound";
+import pop_1 from "./sounds/pop_1.wav";
+import pop_2 from "./sounds/pop_2.wav";
+import pop_3 from "./sounds/pop_3.wav";
 
 function Egg({ datestamp }: { datestamp: number }) {
   return (
@@ -36,7 +40,16 @@ function Egg({ datestamp }: { datestamp: number }) {
 
 function Chicken() {
   const [eggs, setEggs] = useState<number[]>([]);
-  // const height = useRe;
+  const prevent = useRef(false);
+
+  const pops = [useSound(pop_1), useSound(pop_2), useSound(pop_3)];
+  const layEgg = () => {
+    setEggs((eggs) => [...eggs, Date.now()]);
+    const popChoice = Math.floor(Math.random() * 3);
+    console.log(popChoice);
+    pops[popChoice][0](); // play the sound
+  };
+
   return (
     <>
       <div className="chickenwrapper">
@@ -84,7 +97,17 @@ function Chicken() {
           <motion.g
             whileHover="hovered"
             whileTap="clicked"
-            onClick={() => setEggs((eggs) => [...eggs, Date.now()])}
+            onMouseDown={() => {
+              prevent.current = true;
+              layEgg();
+            }}
+            onTouchStart={() => {
+              if (!prevent.current) {
+                layEgg();
+              } else {
+                prevent.current = false;
+              }
+            }}
             variants={{
               hovered: {
                 transition: {
