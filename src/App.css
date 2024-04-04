@@ -8,6 +8,10 @@
   outline: none;
 }
 
+.chickenbox {
+  touch-action: manipulation;
+}
+
 .chickenwrapper {
   width: 300px;
   height: 300px;
