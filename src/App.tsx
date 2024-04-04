@@ -1,14 +1,112 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion, useAnimationFrame } from "framer-motion";
 import useSound from "use-sound";
 import pop_1 from "./sounds/pop_1.wav";
 import pop_2 from "./sounds/pop_2.wav";
 import pop_3 from "./sounds/pop_3.wav";
+import { Engine, Composite, Bodies, World } from "matter-js";
 
-function Egg({ datestamp }: { datestamp: number }) {
+function EggSimulator3000({
+  world,
+  box,
+}: {
+  world: Matter.World;
+  box: HTMLDivElement;
+}) {
+  const setFc = useState(0)[1]; //hackzzor
+  const engine = useRef<Matter.Engine>(Engine.create({ world: world }));
+
+  useAnimationFrame((_, delta) => {
+    engine.current = Engine.update(engine.current, delta);
+    setFc((fc) => fc + 1);
+  });
+
   return (
-    <g id="Egg">
+    <svg
+      width={box.clientWidth}
+      height={box.clientHeight}
+      viewBox={`0 0 ${box.clientWidth} ${box.clientHeight}`}
+      className="egg"
+    >
+      {/* <pattern id="grid" patternUnits="userSpaceOnUse" width="15" height="15">
+        <rect
+          fill="none"
+          stroke="white"
+          width="15"
+          height="15"
+          strokeWidth={0.1}
+          vector-effect="non-scaling-stroke"
+        />
+      </pattern>
+
+      <rect width="100%" height="100%" fill="url(#grid)" /> */}
+      {Composite.allBodies(engine.current.world).map((body) => {
+        if (body.isStatic) {
+          // return (
+          //   <rect
+          //     key={body.id}
+          //     stroke="#00f"
+          //     fill="none"
+          //     x={body.bounds.min.x}
+          //     y={body.bounds.min.y}
+          //     width={body.bounds.max.x - body.bounds.min.x}
+          //     height={body.bounds.max.y - body.bounds.min.y}
+          //   />
+          // );
+        } else {
+          return (
+            <g key={body.id}>
+              <Egg
+                datestamp={body.id}
+                x={body.position.x}
+                y={body.position.y}
+                rotate={body.angle}
+              />
+
+              {/* <polygon
+                key={body.id}
+                data-bla={body.id}
+                fill="none"
+                stroke="red"
+                strokeWidth={2}
+                x={body.position.x}
+                y={body.position.y}
+                points={body.vertices
+                  .map((vec) => `${vec.x},${vec.y}`)
+                  .join(" ")}
+              /> */}
+            </g>
+          );
+        }
+      })}
+    </svg>
+  );
+}
+
+function Egg({
+  datestamp,
+  x,
+  y,
+  rotate,
+}: {
+  datestamp: number;
+  x: number;
+  y: number;
+  rotate: number;
+}) {
+  return (
+    <g
+      id="Egg"
+      style={{
+        transformBox: "fill-box",
+        transformOrigin: "center",
+      }}
+      transform={`translate(${x - 15}, ${y - 20}) rotate(${
+        rotate * (180 / Math.PI)
+      })`}
+      rotate={rotate}
+    >
       <path
         id="fill"
         d="M29 21.8947C29 31.3417 22.5081 39 14.5 39C6.49187 39 0 31.3417 0 21.8947C0 12.4478 6.49187 0 14.5 0C22.5081 0 29 12.4478 29 21.8947Z"
@@ -39,21 +137,103 @@ function Egg({ datestamp }: { datestamp: number }) {
 }
 
 function Chicken() {
-  const [eggs, setEggs] = useState<number[]>([]);
+  const eggsR = useRef(World.create({}));
+  const eggBoxRef = useRef<null | HTMLDivElement>(null);
   const prevent = useRef(false);
 
   const pops = [useSound(pop_1), useSound(pop_2), useSound(pop_3)];
+
+  useEffect(() => {
+    if (eggBoxRef.current) {
+      console.log("grouding");
+      const groundGroup = Composite.create({ label: "ground" });
+      const ground1 = Bodies.rectangle(
+        eggBoxRef.current.clientWidth / 2,
+        eggBoxRef.current.clientHeight - 30,
+        eggBoxRef.current.clientWidth - 80,
+        60,
+        {
+          isStatic: true,
+        }
+      );
+      const ground2 = Bodies.rectangle(
+        eggBoxRef.current.clientWidth - 40,
+        eggBoxRef.current.clientHeight - 60,
+        20,
+        30,
+        {
+          isStatic: true,
+        }
+      );
+
+      const ground3 = Bodies.rectangle(
+        40,
+        eggBoxRef.current.clientHeight - 60,
+        20,
+        30,
+        {
+          isStatic: true,
+        }
+      );
+      Composite.add(groundGroup, [ground1, ground2, ground3]);
+      eggsR.current = World.add(eggsR.current, groundGroup);
+
+      const cleanup: (compositeId: number) => () => void = (compositeId) => {
+        return () => {
+          const toRemove = Composite.get(
+            eggsR.current,
+            compositeId,
+            "composite"
+          );
+          eggsR.current = World.remove(eggsR.current, toRemove) as Matter.World;
+        };
+      };
+      return cleanup(groundGroup.id);
+    }
+  }, [eggBoxRef]);
+
   const layEgg = () => {
-    setEggs((eggs) => [...eggs, Date.now()]);
+    addEgg();
     const popChoice = Math.floor(Math.random() * 3);
-    console.log(popChoice);
+
     pops[popChoice][0](); // play the sound
+  };
+
+  const addEgg = () => {
+    if (eggBoxRef.current) {
+      const newEgg = Bodies.fromVertices(
+        eggBoxRef.current.clientWidth * 0.6,
+        0,
+        [
+          [
+            { x: 29, y: 21.894699096679688 },
+            { x: 25.997108459472656, y: 32.31911087036133 },
+            { x: 17.343135833740234, y: 38.67129135131836 },
+            { x: 6.912541389465332, y: 36.47406005859375 },
+            { x: 0.8123238682746887, y: 27.55365562438965 },
+            { x: 0.5843343734741211, y: 16.673776626586914 },
+            { x: 4.7783203125, y: 6.572409629821777 },
+            { x: 13.291096687316895, y: 0.09448003768920898 },
+            { x: 22.769916534423828, y: 4.628262996673584 },
+            { x: 27.811491012573242, y: 14.323235511779785 },
+          ],
+        ]
+      );
+
+      Composite.add(eggsR.current, newEgg);
+    }
   };
 
   return (
     <>
+      <p>{Composite.allBodies(eggsR.current).length}</p>
       <div className="chickenwrapper">
-        <div className="eggbox">
+        <div className="eggbox" ref={eggBoxRef}>
+          {eggBoxRef.current && (
+            <EggSimulator3000 world={eggsR.current} box={eggBoxRef.current} />
+          )}
+        </div>
+        {/* <div className="eggbox">
           {eggs.map((datestamp) => (
             <AnimatePresence key={datestamp}>
               <motion.svg
@@ -86,7 +266,7 @@ function Chicken() {
               </motion.svg>
             </AnimatePresence>
           ))}
-        </div>
+        </div> */}
         <svg
           className="chickenbox"
           width="100%"
@@ -201,6 +381,7 @@ function Chicken() {
           </motion.g>
         </svg>
       </div>
+
       <div className="footer">
         <p>
           Made{" "}

@@ -1,4 +1,5 @@
 #root {
+  min-width: 300px;
   max-width: 1280px;
   margin: 0 auto;
   /* padding: 2rem; */
@@ -20,19 +21,20 @@
   position: relative;
 }
 .eggbox {
-  width: 100%;
+  width: 600px;
   height: calc(100svh - 65%);
   position: absolute;
   top: 60%;
-  left: 0;
-  z-index: -1;
+  left: -150px;
+
+  /* z-index: -1; */
   pointer-events: none;
 }
 
-.egg {
+/* .egg {
   position: absolute;
   right: 20%;
-}
+} */
 
 .footer {
   position: fixed;
