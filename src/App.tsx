@@ -1,4 +1,4 @@
-import { MutableRefObject, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import "./App.css";
 import { AnimatePresence, motion } from "framer-motion";
 import useSound from "use-sound";
@@ -203,6 +203,19 @@ function Chicken() {
             </motion.g>
           </motion.g>
         </svg>
+      </div>
+      <div className="footer">
+        <p>
+          Made{" "}
+          <a target="_blank" href="https://github.com/Swendude/chicken">
+            open-source
+          </a>{" "}
+          with ❤️ by{" "}
+          <a target="_blank" href="https://www.mindmingle.nl">
+            Mind Mingle
+          </a>
+          , learn to code in ten weeks!
+        </p>
       </div>
     </>
   );
